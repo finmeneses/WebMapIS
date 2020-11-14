@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Survey PanoMaps</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+        <!--<script src="js/leaflet.ajax.js"></script>-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5.1.6/turf.min.js"></script>
+        <link rel="stylesheet" href="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.css" />
+        <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
+       
+        <!--art where I set the height of the divs, # for IDs and . for objects-->
+        <style>           
+            #header {
+                height: 75px;
+                background-color: aliceblue;
+            }
+            #mapdiv {
+                height: 650px;
+                background-color:mediumseagreen;
+            }
+            #side_panel {
+                height: 650px;
+                background-color:beige;
+            }
+            #footer {
+                height:30px;
+                background-color: darkgrey;
+            }
+            .btn-margin {
+                margin-bottom: 5px;
+            }
+            
+            .modal {
+                z-index: 1000;
+                width: 100%;
+                height: 100%;
+                display: none;
+                background-color: rgba(0,0,0,0.7);
+            }
+
+            .modal-content {
+                padding: 20px;
+                background-color:maroon;
+                margin-top: 15%;
+            }           
+        </style>
+    </head>
+    
+    <body>
+        <!--Holder for the title header. Uses Boostrap class col-md so display will adjust depending of screen size-->
+        <div id="header" class="col-md-12">
+            <h1 class="text-center"><a href="http://localhost/panomaps/index.html">Business Concession Area</a></h1>
+        </div>
+        
+        <!--Holder for the side panel. Panel will contain the list of observation points-->
+        <div id="side_panel" class="col-md-3">
+            <h1 class="text-center">Observation Points</h1>
+        </div>
+        
+        <!--Holder for the Leaflet map-->
+        <div id="mapdiv" class="col-md-9"></div>
+        
+        <!--Holder for the footer that shows the position of the curser-->
+        <div id="footer" class="col-md-12">
+            <h5 id="map_coords" class="text-center">Latitude: 14.63 Longitude: 121.06 Zoom Level: 12</h5>
+        </div>
+        
+        <!--Holder for the modal (called via the Boostrap plug-in) that pops up when left mouse button is clicked--> 
+        <div id="modPanopoints" class="modal">
+              <div id='form' class="modal-content col-md-7 col-md-offset-4">
+                    
+                    <!--Input div for the observation point name-->
+                    <div class="form-group row">
+                          <div class="col-sm-10">
+                                <input type="text" class="form-control" id="name" placeholder="Asset Name">
+                          </div>
+                          <div class="col-sm-2">
+                                <span id="idDisplay" class="pull-right"></span>
+                          </div>
+                    </div>
+                    
+                    <!--Div for the coordinates of clicked point on the Leaflet Map-->
+                    <div class="form-group row">
+                          <div class="col-sm-6">
+                                <input type="text" class="form-control" id="latitude" placeholder="Latitude">
+                          </div>
+                          <div class="col-sm-6">
+                                <input type="text" class="form-control" id="longitude" placeholder="Longitude">
+                          </div>
+                    </div>
+                    
+                    <!--Div where user can choose type of facility being recorded on the map.-->
+                    <div class="form-group row">
+                          <div class="col-sm-6">
+                                <select id="asset" class="form-control">
+                                    <option value="HO">HO</option>
+                                    <option value="Water">Water</option>
+                                    <option value="UsedWater">Used Water</option>
+                                    <option value="CPF">Common Purpose Facilities</option>
+                                    <option value="Others">Others</option>
+                                </select>
+                          </div>
+                    </div>
+                    
+                    <!--Div where user can upload picture of the site.-->
+                    <div class="form-group row">
+                          <div class="col-sm-6">
+                                <input type="text" class="form-control" id="img" placeholder="Image Name"> 
+                          </div>
+                          <div class="col-sm-6">
+                                <h4 id="img_input" position="absolute" class="text-left">
+                                    <form action="upload_img.php" method="post" enctype="multipart/form-data">
+                                    <font color="white">Select image to upload:</font>
+                                    <input type="file" name="fileToUpload" id="fileToUpload"> 
+                                    <input type="submit" value="Upload Image" name="submit">
+                                    </form>    
+                                </h4>   
+                          </div>
+                    </div>
+                    
+                    <!--Div where user can input URL of site being recorded.-->
+                    <div class="form-group row">
+                          <div class="col-sm-12">
+                                <input type="text" class="form-control" id="url" placeholder="Web URL">
+                          </div>
+                    </div>
+  
+                    <!--Div that contains the Add and Cancel buttons rendered by Bootstrap classes.-->
+                    <div id="addButtons">
+                        <button id="btnSave" class="btn btn-success">Save</button>
+                        <button class="btn btn-danger btnCancel">Cancel</button>
+                    </div>
+                    
+                    <!--Div that contains the Edit, Add and Cancel buttons rendered by Bootstrap classes.-->
+                    <div id="editButtons">
+                        <button id="btnUpdate" class="btn btn-success">Update</button>
+                        <button id="btnDelete" class="btn btn-warning">Delete</button>
+                        <button class="btn btn-danger btnCancel">Cancel</button>
+                    </div>
+              </div>
+        </div>
+        <!--End of Modal pop-up.--> 
+       
+        <script>  
+            //Rendering the map using the Leaflet API
+            var mymap = L.map('mapdiv');
+            mymap.setView([14.63, 121.06], 12);
+            mymap.doubleClickZoom.disable();
+                    
+            var backgroundLayer = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">Humanitarian OpenStreetMap Team</a> hosted by <a href="https://openstreetmap.fr/" target="_blank">OpenStreetMap France</a>'
+            });
+            mymap.addLayer(backgroundLayer);
+            
+            L.control.scale ({maxWidth:240, metric:true, imperial:false, position: 'bottomleft'}).addTo (mymap);
+            let polylineMeasure = L.control.polylineMeasure ({position:'topleft', unit:'metres', showBearings:true, clearMeasurementsOnStop: false, showClearControl: true, showUnitControl: true})
+            polylineMeasure.addTo(mymap);
+            
+            //End of the Leaflet API call
+                    
+            //Declaration of the location pins shown on the Leaflet Map
+            var lyrPanopoints;
+            
+            //Calls the function to render the Leaflet map everytime the page is loaded or something new is done
+            refreshpanomap();
+            
+            //Definition of the function refreshpanomap
+            function refreshpanomap(){
+                        $.ajax({url:"php/load_panopoints.php", 
+                                success:function(response){
+                            if (lyrPanopoints){
+                                mymap.removeLayer(lyrPanopoints)
+                                $("#side_panel").html("<h1 class='text-center'>Observation Points</h1>");
+                            };
+                            
+                            //Gets the binary objects from the DB i.e. passed by the load_panopoints.php, converts it to text via GeoJSON so that Leaflet can process it. latlng is an object in Leaflet that contains geographic position.
+                            lyrPanopoints=L.geoJSON(JSON.parse(response),{pointToLayer:function(feature,latlng){
+                                //Code that populates the left side panel using DOM i.e. DOM element is with ID #side_panel and bootsrap i.e. btn class
+                                var str = "<button id='zoomTo"+feature.properties.name.replace(/ /g, '');
+                                str += "' class='form-control btn btn-primary btn-margin'>";
+                                str += feature.properties.name+"</button>";
+                                $("#side_panel").append(str);
+                                
+                                //Code that controls the behaviour of the site when the buttons at the side panel are clicked. Uses JQuery to pass on an anonymous function that sets the view to the clicked button. 
+                                $("#zoomTo"+feature.properties.name.replace(/ /g, '')).click(function(){
+                                    mymap.setView([latlng.lat, latlng.lng],17);
+                                });                            
+                                
+                                //This block contains the code that controls what the bindPopup will show by passing it the str variable
+                                var str = "<h4>"+feature.properties.name+"</h4><hr>";
+                                str += "<h5>Asset: "+feature.properties.asset+"</h5>";
+                                str += "<a href='"+feature.properties.url+"' target='blank'>";
+                                str += "<img src='img/"+feature.properties.img+"' width='200px'>";           
+                                
+                                //Calls the editPanopoints function when the button is clicked i.e. via Javascript's "onclick" method
+                                str += "</a><br><button id='btnEdit' class='btn btn-primary center-block' onclick='editPanopoints("+feature.properties.id+")'>Edit</button>";
+                                
+                                //Single line of codes that uses Leaflet to return a popup on a specified location with all the details generated with the block above
+                                return L.marker(latlng).bindPopup(str);   
+                        }});
+                        
+                        //Displays the GIS map using the variable mymap via Leaflet, fitbounds just makes sure that the display captures all the panopoints via the getBounds method
+                        lyrPanopoints.addTo(mymap);
+                        mymap.fitBounds(lyrPanopoints.getBounds());
+                    }});
+             }   
+            
+             //When edit button is clicked, function will use the ID to retrieve data from DB using find_panopoints.php
+             function editPanopoints(id) {
+                $("#modPanopoints").show();
+                $("#addButtons").hide();
+                $("#editButtons").show();
+                $.ajax({
+                    url:'php/find_panopoints.php',
+                    type:'POST',
+                    data:{id:id},
+                    success:function(response){
+                        objPanopoints=JSON.parse(response);
+                        $("#idDisplay").html(id);
+                        $("#name").val(objPanopoints.name);
+                        $("#latitude").val(objPanopoints.latitude);
+                        $("#longitude").val(objPanopoints.longitude);
+                        $("#asset").val(objPanopoints.asset);
+                        $("#url").val(objPanopoints.url);
+                        $("#img").val(objPanopoints.img);
+                    },
+                    error:function(xhr, status, error){
+                        console.log(xhr);
+                        console.log(status);
+                        console.log(error);
+                    }
+                })
+            }
+            
+            //Event handlers 
+            
+            //When mouse moves, Javascript will get the coordinates of where the mouse is pointed and the coordinates will be displayed at the map_coords div declared above. Uses the "on" method.
+            mymap.on('mousemove', function(e){
+                var str = "Latitude: "+e.latlng.lat.toFixed(5)+"    Longitude: "+e.latlng.lng.toFixed(5)+" Zoom Level: "+mymap.getZoom();
+                //DOM element with ID map_coords with get the value of the variable str passed on using the html method
+                $("#map_coords").html(str);
+            });
+            
+            //When mouse is clicked on the Leaflet Map the modal view will be shown
+            mymap.on('dblclick', function(e){
+                $("#modPanopoints").show();
+                $("#addButtons").show();
+                $("#editButtons").hide();
+                $("#latitude").val(e.latlng.lat.toFixed(5));
+                $("#longitude").val(e.latlng.lng.toFixed(5));
+                $("#idDisplay").html("New");
+            });
+            
+            //When Boostrap class btnCancel is clicked, the modal view will be hidden
+            $(".btnCancel").click(function(){
+                $("#modPanopoints").hide();
+            });
+            
+            //When Boostrap class btnSave is clicked, inputted values will be sent to the database
+            $("#btnSave").click(function(){
+                $.ajax({
+                   url:'php/add_panopoints.php',
+                   type:'POST',
+                   data:{
+                         name:$("#name").val(),
+                         img:$("#img").val(),
+                         url:$("#url").val(),
+                         asset:$("#asset").val(),
+                         latitude:$("#latitude").val(),
+                         longitude:$("#longitude").val()
+                        },
+                   success:function(response){
+                       alert(response);
+                       $("#modPanopoints").hide();
+                       refreshpanomap();
+                   }
+               });
+            });
+            
+            //When Boostrap class btnUpdate is clicked, inputted values will be sent to the database
+            $("#btnUpdate").click(function(){
+                $.ajax({
+                   url:'php/update_panopoints.php',
+                   type:'POST',
+                   data:{
+                       id:$("#idDisplay").html(),
+                       name:$("#name").val(),
+                       img:$("#img").val(),
+                       url:$("#url").val(),
+                       asset:$("#asset").val(),
+                       latitude:$("#latitude").val(),
+                       longitude:$("#longitude").val()
+                   },
+                   success:function(response){
+                       $("#modPanopoints").hide();
+                       refreshpanomap();
+                   }
+               });
+            });
+            
+            //When Boostrap class btnDelete is clicked, values will be deleted from the database
+            $("#btnDelete").click(function(){
+                if (confirm("Are you sure you want to delete this observation?")){
+                    $.ajax({
+                       url:'php/delete_panopoints.php',
+                       type:'POST',
+                       data:{
+                             id:$("#idDisplay").html(),
+                       },
+                       success:function(response){
+                           $("#modPanopoints").hide();
+                           refreshpanomap();
+                       }
+                   });
+                }
+            });
+            
+ 
+        </script>     
+    </body>
+</html>

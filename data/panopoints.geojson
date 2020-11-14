@@ -1,0 +1,13 @@
+{
+"type": "FeatureCollection",
+"name": "panopoints",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "name": "portal", "img": "portal.jpg", "url": "http://localhost/web101/portal.html" }, "geometry": { "type": "Point", "coordinates": [ 121.075421592725121, 14.729847572739709 ] } },
+{ "type": "Feature", "properties": { "id": 2, "name": "eastlamesa", "img": "eastlamesa.jpg", "url": "http://localhost/web101/eastlamesa.html" }, "geometry": { "type": "Point", "coordinates": [ 121.099790678037493, 14.718196845170912 ] } },
+{ "type": "Feature", "properties": { "id": 3, "name": "carriedo", "img": "carriedo.jpg", "url": "http://localhost/web101/carriedo.html" }, "geometry": { "type": "Point", "coordinates": [ 121.075615390469181, 14.655828628544281 ] } },
+{ "type": "Feature", "properties": { "id": 4, "name": "meteor", "img": "meteor.jpg", "url": "http://localhost/web101/meteor.html" }, "geometry": { "type": "Point", "coordinates": [ 121.131813105081847, 14.653922126931096 ] } },
+{ "type": "Feature", "properties": { "id": 5, "name": "siruna", "img": "siruna.jpg", "url": "http://localhost/web101/siruna.html" }, "geometry": { "type": "Point", "coordinates": [ 121.141797747580952, 14.622481866275066 ] } },
+{ "type": "Feature", "properties": { "id": 6, "name": "ilugin", "img": "ilugin.jpg", "url": "http://localhost/web101/ilugin.html" }, "geometry": { "type": "Point", "coordinates": [ 121.095615165375364, 14.555229529565207 ] } }
+]
+}

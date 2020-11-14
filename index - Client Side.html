@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>WebMap 101</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
+        <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+        <!--<script src="js/leaflet.ajax.js"></script>-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.js"></script>
+           
+        <style>
+            #header {
+                height: 75px;
+                background-color: aliceblue;
+            }
+            #mapdiv {
+                height: 650px;
+                background-color:mediumseagreen;
+            }
+            #side_panel {
+                height: 650px;
+                background-color:beige;
+            }
+            #footer {
+                height:75px;
+                background-color: darkgrey;
+            }
+            .btn-margin {
+                margin-bottom: 5px;
+            }
+            
+        </style>
+    </head>
+    <body>
+        <div id="header" class="col-md-12">
+            <h1 class="text-center">MWCI Concession Area</h1>
+        </div>
+        <div id="side_panel" class="col-md-3">
+            <h1 class="text-center">Observation Points</h1>
+            <!--<button id="link" class="form-control btn-primary"><a href="pannellum.html" target="blank">Pannellum</a></button>-->
+        </div>
+        <div id="mapdiv" class="col-md-9"></div>
+        <div id="footer" class="col-md-12">
+            <h4 id="map_coords" class="text-center">Latitude: 14.63 Longitude: 121.06 Zoom Level: 11</h4>
+        </div>
+        <div id="trialspace" class="col-md-12">
+            <img src="/web101/img/alma.jpg" alt="ALMA" style="width:128px;height:128px;">
+        </div>
+        
+        <script>
+            var mymap = L.map('mapdiv')
+            mymap.setView([14.63, 121.06], 11)
+            
+            var backgroundLayer = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png');
+            mymap.addLayer(backgroundLayer);
+            
+            var geojsonLayer = new L.GeoJSON.AJAX('panopoints.geojson').addTo(mymap);
+            
+            /*var mwciMarker = L.marker([14.655868, 121.075461]);
+            mwciMarker.addTo(mymap);
+            mwciMarker.bindPopup("<h3 class='text-center'>Manila Water</h3><hr><a href='https://cdn.pannellum.org/2.5/pannellum.htm?fbclid=IwAR2CFiIHl4RwLI8GUu2v2zXlQ8S9H6T3Wubdoq1UNcGxzVDdfKHmnaZYMgA#panorama=https://i.imgur.com/qaoMIFE.jpg' target='blank'><img src='img/carriedo.jpg' width='200px'></a>");*/
+                
+            var geojsonLayer = new L.GeoJSON.AJAX('data/panopoints.geojson', {pointToLayer: function(feature, latlng) {
+                var str = "<button id='zoomTo"+feature.properties.name.replace(/ /g, '');
+                str += "' class='form-control btn btn-primary btn-margin'>";
+                str += feature.properties.name+"</button>";
+                $("#side_panel").append(str);
+                        
+                $("#zoomTo"+feature.properties.name).click(function(){
+                mymap.setView([latlng.lat, latlng.lng],17);
+                });
+            
+                var str = "<h4>"+feature.properties.name+"</h4><hr>";
+                str += "<a href='"+feature.properties.url+"' target='blank'>";
+                str += "<img src='img/"+feature.properties.img+"' width='200px'>";                     
+                str += "</a>";                                                                           return L.marker(latlng).bindPopup(str);   
+            }});
+            geojsonLayer.addTo(mymap);    
+                
+                
+            /*$("#zoomTocarriedo").click(function(){
+                mymap.setView([14.655868, 121.075461],17);
+            });*/
+            
+            mymap.on('mousemove', function(e){
+                var str = "Latitude: "+e.latlng.lat.toFixed(5)+"    Longitude: "+e.latlng.lng.toFixed(5)+" Zoom Level: "+mymap.getZoom();
+                $("#map_coords").html(str);
+            });
+            
+            
+        </script>
+
+        
+    </body>
+</html>
